@@ -1,3 +1,5 @@
+from vigenere import decrypt, encrypt
+
 import time
 from datetime import datetime
 import os
@@ -24,6 +26,12 @@ def main():
     ...
 
 
+def save(name, pwd):
+    return True
+
+
+def lookup(name):
+    return "pwd or 'not found' message"
 def encrypt(pwd):
     return pwd
 
