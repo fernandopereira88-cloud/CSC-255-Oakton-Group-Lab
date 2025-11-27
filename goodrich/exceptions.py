@@ -1,4 +1,2 @@
-
-
 class Empty(Exception):
     pass
