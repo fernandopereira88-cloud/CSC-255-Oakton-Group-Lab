@@ -1,4 +1,0 @@
-
-
-class Empty(Exception):
-    pass
