@@ -8,6 +8,8 @@ Dependencies:
 
 import click
 import pwinput
+from main import lookup_password_name, get_most_recent_password_names
+from vigenere import decrypt
 
 
 @click.command()
@@ -46,7 +48,52 @@ def keeper(website, password):
     click.echo(f"Website: {website}")
     click.echo(f"Password: {'*' * len(password)}")
 
+    #Menue loop
+    while True:
+        should_continue = print_menu()
+        if not should_continue:
+            break
+
     return website, password
+
+
+def print_menu():
+    """Print menu to show next step operations for user"""
+    click.echo("\n" + "="*50)
+    click.echo(f"What do you want to do next?")
+    click.echo(f"1 - Retrieve password")
+    click.echo(f"2 - Get recent saved password details")
+    click.echo(f"3 - Exit")
+
+    selection = click.prompt("Please enter your choice")
+    return menu_execution(selection)
+
+
+def menu_execution(selection):
+    """Execute next step based on user input"""
+    num = int(selection)
+
+    if num == 1:
+        website_name = click.prompt("Please enter the website name")
+        result = lookup_password_name(website_name)
+        if result: #lookup_pw returns encrypted pw, need to decrypte
+            try:
+                decrypted_pw = decrypt(result[0])
+                click.echo(f"Website: {website_name}")
+                click.echo(f"Password: {decrypted_pw}")
+            except Exception as e:
+                click.echo(f"Error decrypting passowrd: {e}")
+
+    elif num == 2:
+        get_most_recent_password_names()
+
+    elif num == 3:
+        click.echo("Thank you for using Keeper! Goodbye!")
+        return False
+    else:
+        click.echo("Invalid selection. Please select a number from the menu")
+
+    return True
 
 
 if __name__ == "__main__":
