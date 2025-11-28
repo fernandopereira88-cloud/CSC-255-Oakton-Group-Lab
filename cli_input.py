@@ -8,8 +8,8 @@ Dependencies:
 
 import click
 import pwinput
-from main import lookup_password_name, get_most_recent_password_names
-from vigenere import decrypt
+from main import lookup_password_name, get_most_recent_password_names, update_password_name
+from vigenere import decrypt, encrypt
 
 
 @click.command()
@@ -44,6 +44,11 @@ def keeper(website, password):
         else:
             click.echo("Passwords do not match! Please try again.\n")
 
+    #Encrypt and save pw
+    encrypted_pw = encrypt(password)
+    update_password_name(website, encrypted_pw)
+
+    #Confirm user input
     click.echo(f"Credentials captured!")
     click.echo(f"Website: {website}")
     click.echo(f"Password: {'*' * len(password)}")
