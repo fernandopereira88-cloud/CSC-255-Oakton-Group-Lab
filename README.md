@@ -34,9 +34,25 @@ The project demonstrates the use of:
 - The vault contents are stored in a **file**.
 - A **hash table** is used for in-memory fast lookups.
 - A **max heap** tracks recently updated items for reporting.
-- Encryption module secures passwords before writing to disk.
+- Passwords are encrypted with Vigenere algorithm before writing to disk.
 
-### 3.2 CLI Flow
-1. Run the app:  
-   ```bash
-   python main.py
+### 3.2 Usage
+1. Create a virtual environment to install dependencies
+```sh
+# Create a virtual environment named .venv
+python3 -m venv .venv
+
+# Activate the virtual environment
+source .venv/bin/activate # For POSIX systems (macOS, Linux)
+.\MyEnv\Scripts\Activate # For Windows
+
+# Install dependencies
+pip install -r requirements.txt
+
+```
+2. Run the app:  
+```sh
+python main.py
+# OR
+python3 main.py
+```
