@@ -96,10 +96,10 @@ def menu_execution(selection):
 
     elif num == 2:  # get pw
         website_name = click.prompt("Please enter the website name")
-        result = lookup_password_name(website_name)
+        result = lookup_password_name(website_name, privateCall=1)
         if result:
             try:
-                decrypted_pw = decrypt(result[0])
+                decrypted_pw = decrypt(result)
                 click.echo("Password retrieved successfully!")
                 click.echo(f"Website: {website_name}")
                 click.echo(f"Password: {decrypted_pw}")
