@@ -79,7 +79,7 @@ def update_password_name(name, pwd):
                 break
 
         if newContentLine == "":
-            print("\nThe password NAME {name} was not found in order to be updated.")
+            print(f"\nThe password NAME {name} was not found in order to be updated.")
         else:
             contentLines[updateRow] = newContentLine + "\n"
 
