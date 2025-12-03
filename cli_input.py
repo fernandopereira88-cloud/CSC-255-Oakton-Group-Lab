@@ -8,7 +8,7 @@ Dependencies:
 
 import click
 import pwinput
-from main import *
+import database as db
 from vigenere import decrypt, encrypt
 
 
@@ -53,10 +53,10 @@ def keeper(add=True):
     encrypted_pw = encrypt(password)
     if add is True:
         #Save pw
-        create_password_name(website, encrypted_pw)
+        db.create_password_name(website, encrypted_pw)
     else:
         #Update pw
-        update_password_name(website, encrypted_pw)
+        db.update_password_name(website, encrypted_pw)
 
     #Confirm user input
     click.echo(f"Credentials captured!")
@@ -101,7 +101,7 @@ def menu_execution(selection):
 
     elif num == 2: #get pw
         website_name = click.prompt("Please enter the website name")
-        result = lookup_password_name(website_name)
+        result = db.lookup_password_name(website_name)
         if result:
             try:
                 decrypted_pw = decrypt(result[0])
@@ -118,10 +118,10 @@ def menu_execution(selection):
         website4 = click.prompt("Please enter the website name you want to delete")
         pw4 = pwinput.pwinput("Please enter the password (characters will show as *) : ", mask="*")
         encrypted_pw4 = encrypt(pw4)
-        delete_password_name(website4, encrypted_pw4)
+        db.delete_password_name(website4, encrypted_pw4)
 
     elif num == 5: #get recent
-        get_most_recent_password_names()
+        db.get_most_recent_password_names()
 
     elif num == 6: #exit
         click.echo("Thank you for using Keeper! Goodbye!")
