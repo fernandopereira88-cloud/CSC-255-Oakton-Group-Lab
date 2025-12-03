@@ -125,14 +125,6 @@ def menu_execution(selection):
     return True
 
 
-def encrypt(pwd):
-    return pwd
-
-
-def decrypt(pwd):
-    return pwd
-
-
 def create_password_name(name, pwd):
     """
     Description: function to create a new password
@@ -247,14 +239,14 @@ def delete_password_name(name, pwd):
 
 def lookup_password_name(name, privateCall=0):
     """
-    Description: function to create a new password
+    Description: function to look up a password
 
     Inputs:
         - name: the password name with the encrypted password to be retrieved
         - privateCall: set to 0 by default and will return a message to the user when the password name is not found.
                        If set to 1, there will be no such message. Set it to 1 when calling lookup_password_name() within the app
     Outputs:
-        - A tuple with the encrypted (password,createAt,lastUpdatedAt)
+        - The encrypted password string
     """
     lookUpHashTable = phm(
         cap=1231, probingMethod="double"
@@ -270,19 +262,17 @@ def lookup_password_name(name, privateCall=0):
     lookupValue = lookUpHashTable[
         name
     ]  # the encrypted password. Use lookUpHashTable[name] to return more data points such as created date and updated date
-    if lookupValue == False:
+    if not lookupValue:
         if privateCall == 0:
             return print(
                 f"\nPassword name {name} not found. Please, create a new password name for this name to be able to use it."
             )
 
-        else:
-            return False
+        return False
     else:
         if privateCall == 0:
-            return print(f"The password for {name} is {lookupValue}")
-        else:
-            return lookupValue
+            print(f"The password for {name} is {lookupValue}")
+        return lookupValue
 
 
 def get_most_recent_password_names():
