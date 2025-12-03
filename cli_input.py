@@ -52,10 +52,10 @@ def keeper(add=True):
     # Encrypt the pw
     encrypted_pw = encrypt(password)
     if add is True:
-        #Save pw
+        # Save pw
         db.create_password_name(website, encrypted_pw)
     else:
-        #Update pw
+        # Update pw
         db.update_password_name(website, encrypted_pw)
 
     # Confirm user input
@@ -64,24 +64,6 @@ def keeper(add=True):
     click.echo(f"Password: {'*' * len(password)}")
 
     return website, password
-
-
-@click.command()
-def main():
-    """This is a command-line function."""
-
-    greeting_msg = """
-    Welcome to Keeper, a simple and secure solution for managing your credentials right from the command line!
-    All you need to do is to provide website name and it's password.
-    Keeper will encrypt your password using industry-standard protocols, ensuring your sensitive information remains 
-    private and protected.
-    """
-    click.echo(greeting_msg)
-
-    while True:
-        should_continue = print_menu()
-        if not should_continue:
-            break
 
 
 def menu_execution(selection):
@@ -117,7 +99,7 @@ def menu_execution(selection):
         encrypted_pw4 = encrypt(pw4)
         db.delete_password_name(website4, encrypted_pw4)
 
-    elif num == 5: #get recent
+    elif num == 5:  # get recent
         db.get_most_recent_password_names()
 
     elif num == 6:  # exit
@@ -128,7 +110,3 @@ def menu_execution(selection):
         click.echo("Invalid selection. Please selection 1-6")
 
     return True
-
-
-if __name__ == "__main__":
-    main()
