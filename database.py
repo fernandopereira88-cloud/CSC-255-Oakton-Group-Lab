@@ -160,34 +160,55 @@ def lookup_password_name(name, privateCall=0):
 
 def get_most_recent_password_names():
     """
-    Description:
-    Inputs:
-        -
-    Outputs:
-        -
+    Description: Display the top 5 most recently updated password names
+    Inputs: None
+    Outputs: Prints the top 5 most recently updated entries
     """
+    
+    # FIX: Add this check at the beginning
+    if not os.path.exists(VAULT_FILE_ADDRESS):
+        print("\n📭 Your vault is empty!")
+        print("   Start by creating your first password entry.\n")
+        return
+    
     mostRecentUpdatedPasswordNameHeap = mpq()
-    with open(VAULT_FILE_ADDRESS, "r") as file:
-        for line in file:
-            fields = line.rstrip().split(",")
-            if fields[0] != "password_name":
-                mostRecentUpdatedPasswordNameHeap.add(
-                    fields[3], fields[0]
-                )  # fields[3] --> Most Recent Updated At || fields[0] --> Password Name
-
+    
+    try:
+        with open(VAULT_FILE_ADDRESS, "r") as file:
+            # Check if file has data beyond header
+            has_data = False
+            for line in file:
+                fields = line.rstrip().split(",")
+                if fields[0] != "password_name":
+                    has_data = True
+                    mostRecentUpdatedPasswordNameHeap.add(fields[3], fields[0])
+            
+            # FIX: Check if we found any data
+            if not has_data:
+                print("\n📭 Your vault is empty!")
+                print("   Start by creating your first password entry.\n")
+                return
+                
+    except FileNotFoundError:
+        print("\n📭 Your vault is empty!")
+        print("   Start by creating your first password entry.\n")
+        return
+    
+    # Rest of the function remains the same...
     index = 1
     print("=========================================================")
     print("= TOP 5 MOST RECENTLY PASSWORD NAMES UPDATED            =")
     print("=========================================================")
     print("# | Password name\t| Most Recent Update\t\t|")
     print("_________________________________________________________")
+    
     while not mostRecentUpdatedPasswordNameHeap.is_empty() and index <= 5:
         item = mostRecentUpdatedPasswordNameHeap.remove_max()
         itemFormattedTime = datetime.fromtimestamp(float(item[0]))
         print(index, "|", item[1], "\t|", itemFormattedTime, "\t|")
         index += 1
+    
     print("_________________________________________________________")
-
 
 def test():
     # Test: Create new password names
