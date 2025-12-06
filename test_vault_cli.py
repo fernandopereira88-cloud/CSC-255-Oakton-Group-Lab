@@ -29,53 +29,51 @@ def reset_cli_vault():
 
 class TestVaultCLI(unittest.TestCase):
 
+  
     # Test 1: CREATE PASSWORD
+
     @patch("click.echo")
     @patch("pwinput.pwinput")
     @patch("click.prompt")
     def test_cli_create(self, mock_prompt, mock_pwinput, mock_echo):
         reset_cli_vault()
 
-        # prompt sequence:
-        # 1 → create
-        # "gmail.com"
-        # 6 → exit
         mock_prompt.side_effect = ["1", "gmail.com", "6"]
-
-        # pwinput sequence:
-        # enter password
-        # confirm password
         mock_pwinput.side_effect = ["abc123", "abc123"]
 
         with patch("builtins.input", side_effect=["6"]):
-            main()
+            try:
+                main()
+            except SystemExit:
+                pass
 
-        # check database updated
         stored = database.lookup_password_name("gmail.com", privateCall=1)
         self.assertIsNotNone(stored)
 
 
-    # Test 2: RETRIEVE PASSWORD 
+    # Test 2: RETRIEVE PASSWORD
+
     @patch("click.echo")
     @patch("click.prompt")
     def test_cli_retrieve(self, mock_prompt, mock_echo):
         reset_cli_vault()
 
-        # Preload one entry
         database.create_password_name("uiuc", "EncryptedPW")
 
-        # prompt sequence: 2 → retrieve, "uiuc", 6 → exit
         mock_prompt.side_effect = ["2", "uiuc", "6"]
 
         with patch("builtins.input", side_effect=["6"]):
-            main()
+            try:
+                main()
+            except SystemExit:
+                pass
 
-        # verify echo was called with retrieval message
         called_strings = " ".join(str(c) for c in mock_echo.call_args_list)
         self.assertIn("Password retrieved successfully", called_strings)
 
-
-    # Test 3: UPDATE PASSWORD 
+   
+    # Test 3: UPDATE PASSWORD
+    
     @patch("click.echo")
     @patch("pwinput.pwinput")
     @patch("click.prompt")
@@ -88,37 +86,45 @@ class TestVaultCLI(unittest.TestCase):
         mock_pwinput.side_effect = ["NEWPASSWORD", "NEWPASSWORD"]
 
         with patch("builtins.input", side_effect=["6"]):
-            main()
+            try:
+                main()
+            except SystemExit:
+                pass
 
         updated = database.lookup_password_name("github", privateCall=1)
         self.assertIsNotNone(updated)
 
+
     # Test 4: DELETE PASSWORD
+  
     @patch("click.echo")
     @patch("pwinput.pwinput")
     @patch("click.prompt")
     def test_cli_delete(self, mock_prompt, mock_pwinput, mock_echo):
         reset_cli_vault()
 
-        # Preload entry
         database.create_password_name("reddit", "AAA")
 
         mock_prompt.side_effect = ["4", "reddit", "6"]
-        mock_pwinput.side_effect = ["AAA"]  # Password for delete() confirmation
+        mock_pwinput.side_effect = ["AAA"]
 
         with patch("builtins.input", side_effect=["6"]):
-            main()
+            try:
+                main()
+            except SystemExit:
+                pass
 
         result = database.lookup_password_name("reddit", privateCall=1)
         self.assertIsNone(result)
-        
-    # Test 5: RECENT LIST 
+
+   
+    # Test 5: RECENT LIST
+
     @patch("click.echo")
     @patch("click.prompt")
     def test_cli_recent(self, mock_prompt, mock_echo):
         reset_cli_vault()
 
-        # preload data
         database.create_password_name("a", "1")
         database.create_password_name("b", "2")
         database.create_password_name("c", "3")
@@ -126,22 +132,28 @@ class TestVaultCLI(unittest.TestCase):
         mock_prompt.side_effect = ["5", "6"]
 
         with patch("builtins.input", side_effect=["6"]):
-            main()
+            try:
+                main()
+            except SystemExit:
+                pass
+
         called = " ".join(str(c) for c in mock_echo.call_args_list)
         self.assertIn("TOP 5 MOST RECENTLY PASSWORD NAMES UPDATED", called)
 
-    # Test 6: EXIT 
+    # Test 6: EXIT
     @patch("click.echo")
     @patch("click.prompt")
     def test_cli_exit(self, mock_prompt, mock_echo):
         reset_cli_vault()
 
-        mock_prompt.side_effect = ["6"]  # exit immediately
+        mock_prompt.side_effect = ["6"]
 
         with patch("builtins.input", side_effect=["6"]):
-            main()
+            try:
+                main()
+            except SystemExit:
+                pass
 
-        # ensure exit message printed
         all_calls = " ".join(str(c) for c in mock_echo.call_args_list)
         self.assertIn("Goodbye", all_calls)
 
