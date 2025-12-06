@@ -8,7 +8,13 @@ import pwinput
 
 VAULT_FILE_ADDRESS = "vault.txt"
 
-
+def check_database():
+    # Check if a vault already exists. If a vault does not exists, create one.
+    if not os.path.exists(VAULT_FILE_ADDRESS):
+        with open(VAULT_FILE_ADDRESS, "w") as file:
+            data = "password_name,encrypted_password,created_at,last_updated_at\n"
+            file.write(data)
+            
 def create_password_name(name, pwd):
     """
     Description: function to create a new password
