@@ -1,6 +1,7 @@
 import click
 from cli_input import print_menu
-
+import os
+VAULT_FILE_ADDRESS = "vault.txt"
 
 @click.command()
 def main():
@@ -14,6 +15,12 @@ def main():
     """
     click.echo(greeting_msg)
 
+    # Check if a vault already exists. If a vault does not exists, create one.
+    if not os.path.exists(VAULT_FILE_ADDRESS):
+        with open(VAULT_FILE_ADDRESS, "w") as file:
+            data = "password_name,encrypted_password,created_at,last_updated_at\n"
+            file.write(data)
+                
     while True:
         should_continue = print_menu()
         if not should_continue:
