@@ -73,14 +73,14 @@ python test_database.py
 
 ---
 
-### **4.2 CLI Tests (full program simulation)**
+### **4.2 CLI Menu Tests**
 
-Simulates real user input by calling `main()` and mocking:
+Unit tests call `menu_execution()` directly and mock:
 
 * `click.prompt`
 * `pwinput.pwinput`
 * `click.echo`
-* `builtins.input`
+* database helpers
 
 Run:
 
@@ -95,6 +95,3 @@ python -m unittest test_vault_cli.py
 ```sh
 python -m unittest discover .
 ```
-
-All tests use temporary vault files and **do NOT modify `vault.txt`**.
-
