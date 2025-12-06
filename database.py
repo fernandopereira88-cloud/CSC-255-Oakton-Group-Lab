@@ -3,10 +3,18 @@ from datetime import datetime
 import os
 from goodrich.ch10.probe_hash_map import ProbeHashMap as phm
 from goodrich.ch09.max_heap_priority_queue_pereira import MaxHeapPriorityQueue as mpq
+from vigenere import decrypt, encrypt
+import pwinput
 
 VAULT_FILE_ADDRESS = "vault.txt"
 
-
+def check_database():
+    # Check if a vault already exists. If a vault does not exists, create one.
+    if not os.path.exists(VAULT_FILE_ADDRESS):
+        with open(VAULT_FILE_ADDRESS, "w") as file:
+            data = "password_name,encrypted_password,created_at,last_updated_at\n"
+            file.write(data)
+            
 def create_password_name(name, pwd):
     """
     Description: function to create a new password
@@ -53,7 +61,8 @@ def update_password_name(name, pwd):
     """
     if not os.path.exists(VAULT_FILE_ADDRESS):
         # Password is actually a new password, because there is no vault.txt file. So call create_password() instead.
-        return create_password_name(name=name, pwd=pwd)
+        print("\nNo password vault has been found. Create a password first.")
+        return
 
     else:
         # Read file
@@ -98,13 +107,30 @@ def delete_password_name(name, pwd):
     Outputs:
         - A print confirming that the password was deleted
     """
-    while lookup_password_name(name) != pwd:
+    if not os.path.exists(VAULT_FILE_ADDRESS):
+        # Password is actually a new password, because there is no vault.txt file. So call create_password() instead.
+        print("No password vault has been found. Create a password first.")
+        return
+
+    # Check if the password name exists
+    passSearch = lookup_password_name(name, privateCall=1)
+    if passSearch == False:
+        print(
+            f"\nThe password NAME {name} does not exist and cannot be deleted. Try another password name."
+        )
+        return False
+
+    # Confirm password before deleting
+    while passSearch != pwd:
         print(
             "\nCANNOT DELETE PASSWORD. Wrong password entered. Try again, or type 'EXIT' to go back to the main menu."
         )
-        pwd = input("Enter the password:")
+
+        pwd = pwinput.pwinput("Enter the password: ", mask="*")
         if pwd.lower() == "exit":
             return
+        else:
+            pwd = encrypt(pwd)
 
     deleteRow = 0
     newContentLine = ""
@@ -129,6 +155,11 @@ def lookup_password_name(name, privateCall=0):
     Outputs:
         - A tuple with the encrypted (password,createAt,lastUpdatedAt)
     """
+    if not os.path.exists(VAULT_FILE_ADDRESS):
+        # Password is actually a new password, because there is no vault.txt file. So call create_password() instead.
+        print("\nNo password vault has been found. Create a password first.")
+        return
+
     lookUpHashTable = phm(
         cap=1231, probingMethod="double"
     )  # Instantiate a Hash Table using double hashing to store and lookup the name
@@ -153,7 +184,7 @@ def lookup_password_name(name, privateCall=0):
             return False
     else:
         if privateCall == 0:
-            return print(f"The password for {name} is {lookupValue}")
+            return print(f"The password for {name} is {decrypt(lookupValue)}")
         else:
             return lookupValue
 
@@ -164,15 +195,15 @@ def get_most_recent_password_names():
     Inputs: None
     Outputs: Prints the top 5 most recently updated entries
     """
-    
+
     # FIX: Add this check at the beginning
     if not os.path.exists(VAULT_FILE_ADDRESS):
         print("\n📭 Your vault is empty!")
         print("   Start by creating your first password entry.\n")
         return
-    
+
     mostRecentUpdatedPasswordNameHeap = mpq()
-    
+
     try:
         with open(VAULT_FILE_ADDRESS, "r") as file:
             # Check if file has data beyond header
@@ -182,33 +213,34 @@ def get_most_recent_password_names():
                 if fields[0] != "password_name":
                     has_data = True
                     mostRecentUpdatedPasswordNameHeap.add(fields[3], fields[0])
-            
+
             # FIX: Check if we found any data
             if not has_data:
                 print("\n📭 Your vault is empty!")
                 print("   Start by creating your first password entry.\n")
                 return
-                
+
     except FileNotFoundError:
         print("\n📭 Your vault is empty!")
         print("   Start by creating your first password entry.\n")
         return
-    
+
     # Rest of the function remains the same...
     index = 1
-    print("=========================================================")
-    print("= TOP 5 MOST RECENTLY PASSWORD NAMES UPDATED            =")
-    print("=========================================================")
+    print("==============================================================")
+    print("= PASSWORD NAMES REPORT (ORDERED BY CREATION TIME DESCENDING =")
+    print("==============================================================")
     print("# | Password name\t| Most Recent Update\t\t|")
     print("_________________________________________________________")
-    
-    while not mostRecentUpdatedPasswordNameHeap.is_empty() and index <= 5:
+
+    while not mostRecentUpdatedPasswordNameHeap.is_empty():
         item = mostRecentUpdatedPasswordNameHeap.remove_max()
         itemFormattedTime = datetime.fromtimestamp(float(item[0]))
         print(index, "|", item[1], "\t|", itemFormattedTime, "\t|")
         index += 1
-    
+
     print("_________________________________________________________")
+
 
 def test():
     # Test: Create new password names

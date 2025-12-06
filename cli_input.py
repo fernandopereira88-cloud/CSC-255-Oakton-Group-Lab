@@ -58,11 +58,6 @@ def keeper(add=True):
         # Update pw
         db.update_password_name(website, encrypted_pw)
 
-    # Confirm user input
-    click.echo("Credentials captured!")
-    click.echo(f"Website: {website}")
-    click.echo(f"Password: {'*' * len(password)}")
-
     return website, password
 
 
