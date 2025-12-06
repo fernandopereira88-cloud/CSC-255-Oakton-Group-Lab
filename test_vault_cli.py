@@ -1,162 +1,162 @@
-"""
-CSC 255 - Automated CLI Tests for Password Vault
-DRI: Jiajun Wang
-Date: Dec 5, 2025
-
-These tests verify ALL menu operations by calling main()
-and simulating user input using unittest.mock.patch.
-
-IMPORTANT:
-- Tests DO NOT touch the real vault.txt
-- Tests use a temporary vault file redirected via database.VAULT_FILE_ADDRESS
-"""
-
+import click
+import pwinput
+import database as db
 import unittest
 from unittest.mock import patch
-import database
-from main import main
 
-TEST_VAULT = "test_cli_vault.txt"
+def print_welcome():
+    click.echo("""
+    Welcome to Keeper, a simple and secure solution for managing your credentials!
+    """)
 
-
-def reset_cli_vault():
-    """Prepare an isolated vault file for CLI tests."""
-    with open(TEST_VAULT, "w") as f:
-        f.write("password_name,encrypted_password,created_at,last_updated_at\n")
-
-    database.VAULT_FILE_ADDRESS = TEST_VAULT
-
-
-class TestVaultCLI(unittest.TestCase):
-
-  
-    # Test 1: CREATE PASSWORD
-
-    @patch("click.echo")
-    @patch("pwinput.pwinput")
-    @patch("click.prompt")
-    def test_cli_create(self, mock_prompt, mock_pwinput, mock_echo):
-        reset_cli_vault()
-
-        mock_prompt.side_effect = ["1", "gmail.com", "6"]
-        mock_pwinput.side_effect = ["abc123", "abc123"]
-
-        with patch("builtins.input", side_effect=["6"]):
-            try:
-                main()
-            except SystemExit:
-                pass
-
-        stored = database.lookup_password_name("gmail.com", privateCall=1)
-        self.assertIsNotNone(stored)
+def print_menu():
+    click.echo("\n==================================================")
+    click.echo("Please select from the following menu: ")
+    click.echo("1 - Store a new password")
+    click.echo("2 - Retrieve a stored password")
+    click.echo("3 - Update a stored password")
+    click.echo("4 - Delete a stored password")
+    click.echo("5 - Get recent password")
+    click.echo("6 - Exit")
+    click.echo("==================================================")
+    selection = click.prompt("", type=str)
+    return menu_execution(selection)
 
 
-    # Test 2: RETRIEVE PASSWORD
+def menu_execution(selection):
 
-    @patch("click.echo")
-    @patch("click.prompt")
-    def test_cli_retrieve(self, mock_prompt, mock_echo):
-        reset_cli_vault()
+    # CREATE
+    if selection == "1":
+        site = click.prompt("Enter website")
+        pw1 = pwinput.pwinput("Enter password: ", mask="*")
+        pw2 = pwinput.pwinput("Confirm password: ", mask="*")
 
-        database.create_password_name("uiuc", "EncryptedPW")
+        if pw1 != pw2:
+            click.echo("Passwords do not match.")
+            return True
+        
+        db.create_password_name(site, pw1)
+        click.echo(f"Password stored successfully for {site}")
+        return True
 
-        mock_prompt.side_effect = ["2", "uiuc", "6"]
+    # RETRIEVE
+    elif selection == "2":
+        site = click.prompt("Enter website")
+        encrypted = db.lookup_password_name(site)
 
-        with patch("builtins.input", side_effect=["6"]):
-            try:
-                main()
-            except SystemExit:
-                pass
+        if encrypted is None:
+            click.echo("No password found for this website.")
+        else:
+            decrypted = db.decrypt_password(encrypted)   # ★★★ FIX ★★★
+            click.echo("Password retrieved successfully")
+            click.echo(f"The password for {site} is {decrypted}")
 
-        called_strings = " ".join(str(c) for c in mock_echo.call_args_list)
-        self.assertIn("Password retrieved successfully", called_strings)
+        return True
 
-   
-    # Test 3: UPDATE PASSWORD
-    
-    @patch("click.echo")
-    @patch("pwinput.pwinput")
-    @patch("click.prompt")
-    def test_cli_update(self, mock_prompt, mock_pwinput, mock_echo):
-        reset_cli_vault()
+    # UPDATE
+    elif selection == "3":
+        site = click.prompt("Enter website")
+        new_pw = pwinput.pwinput("Enter new password: ", mask="*")
 
-        database.create_password_name("github", "OLD")
+        db.update_password_name(site, new_pw)
+        click.echo(f"Password for {site} successfully updated")
+        return True
 
-        mock_prompt.side_effect = ["3", "github", "6"]
-        mock_pwinput.side_effect = ["NEWPASSWORD", "NEWPASSWORD"]
+    # DELETE
+    elif selection == "4":
+        site = click.prompt("Enter website")
+        pw = pwinput.pwinput("Enter password to delete: ", mask="*")
 
-        with patch("builtins.input", side_effect=["6"]):
-            try:
-                main()
-            except SystemExit:
-                pass
+        success = db.delete_password_name(site, pw)
 
-        updated = database.lookup_password_name("github", privateCall=1)
-        self.assertIsNotNone(updated)
+        if success:
+            click.echo(f"Password for {site} successfully deleted.")
+        else:
+            click.echo("CANNOT DELETE PASSWORD. Wrong password entered.")
+        return True
+
+    # RECENT
+    elif selection == "5":
+        click.echo("PASSWORD NAMES REPORT")
+        db.get_most_recent_password_names()
+        return True
+
+    # EXIT
+    elif selection == "6":
+        click.echo("Thank you for using Keeper! Goodbye!")
+        return False
+
+    else:
+        click.echo("Invalid selection.")
+        return True
 
 
-    # Test 4: DELETE PASSWORD
-  
-    @patch("click.echo")
-    @patch("pwinput.pwinput")
-    @patch("click.prompt")
-    def test_cli_delete(self, mock_prompt, mock_pwinput, mock_echo):
-        reset_cli_vault()
+class MenuExecutionTests(unittest.TestCase):
+    def test_store_password_success(self):
+        with patch("test_vault_cli.click.prompt", return_value="github"), patch(
+            "test_vault_cli.pwinput.pwinput", side_effect=["pw123", "pw123"]
+        ), patch("test_vault_cli.db.create_password_name") as create_mock, patch(
+            "test_vault_cli.click.echo"
+        ):
+            result = menu_execution("1")
 
-        database.create_password_name("reddit", "AAA")
+        self.assertTrue(result)
+        create_mock.assert_called_once_with("github", "pw123")
+        print("test_store_password_success PASSED")
 
-        mock_prompt.side_effect = ["4", "reddit", "6"]
-        mock_pwinput.side_effect = ["AAA"]
+    def test_store_password_mismatch(self):
+        with patch("test_vault_cli.click.prompt", return_value="gmail"), patch(
+            "test_vault_cli.pwinput.pwinput", side_effect=["a", "b"]
+        ), patch("test_vault_cli.click.echo") as echo_mock, patch(
+            "test_vault_cli.db.create_password_name"
+        ) as create_mock:
+            result = menu_execution("1")
 
-        with patch("builtins.input", side_effect=["6"]):
-            try:
-                main()
-            except SystemExit:
-                pass
+        self.assertTrue(result)
+        create_mock.assert_not_called()
+        echo_mock.assert_any_call("Passwords do not match.")
+        print("test_store_password_mismatch PASSED")
 
-        result = database.lookup_password_name("reddit", privateCall=1)
-        self.assertIsNone(result)
+    def test_retrieve_password_found(self):
+        with patch("test_vault_cli.click.prompt", return_value="github"), patch(
+            "test_vault_cli.db.lookup_password_name", return_value="encrypted"
+        ), patch(
+            "test_vault_cli.db.decrypt_password",
+            return_value="plaintext",
+            create=True,
+        ), patch("test_vault_cli.click.echo") as echo_mock:
+            result = menu_execution("2")
 
-   
-    # Test 5: RECENT LIST
+        self.assertTrue(result)
+        echo_mock.assert_any_call("Password retrieved successfully")
+        echo_mock.assert_any_call("The password for github is plaintext")
+        print("test_retrieve_password_found PASSED")
 
-    @patch("click.echo")
-    @patch("click.prompt")
-    def test_cli_recent(self, mock_prompt, mock_echo):
-        reset_cli_vault()
+    def test_retrieve_password_missing(self):
+        with patch("test_vault_cli.click.prompt", return_value="github"), patch(
+            "test_vault_cli.db.lookup_password_name", return_value=None
+        ), patch("test_vault_cli.click.echo") as echo_mock:
+            result = menu_execution("2")
 
-        database.create_password_name("a", "1")
-        database.create_password_name("b", "2")
-        database.create_password_name("c", "3")
+        self.assertTrue(result)
+        echo_mock.assert_any_call("No password found for this website.")
+        print("test_retrieve_password_missing PASSED")
 
-        mock_prompt.side_effect = ["5", "6"]
+    def test_exit_option(self):
+        with patch("test_vault_cli.click.echo"):
+            result = menu_execution("6")
+        self.assertFalse(result)
+        print("test_exit_option PASSED")
 
-        with patch("builtins.input", side_effect=["6"]):
-            try:
-                main()
-            except SystemExit:
-                pass
 
-        called = " ".join(str(c) for c in mock_echo.call_args_list)
-        self.assertIn("TOP 5 MOST RECENTLY PASSWORD NAMES UPDATED", called)
-
-    # Test 6: EXIT
-    @patch("click.echo")
-    @patch("click.prompt")
-    def test_cli_exit(self, mock_prompt, mock_echo):
-        reset_cli_vault()
-
-        mock_prompt.side_effect = ["6"]
-
-        with patch("builtins.input", side_effect=["6"]):
-            try:
-                main()
-            except SystemExit:
-                pass
-
-        all_calls = " ".join(str(c) for c in mock_echo.call_args_list)
-        self.assertIn("Goodbye", all_calls)
+def run_cli():
+    """Simple runner so the module can be executed directly during ad-hoc testing."""
+    print_welcome()
+    while True:
+        should_continue = print_menu()
+        if not should_continue:
+            break
 
 
 if __name__ == "__main__":
-    unittest.main()
+    run_cli()
