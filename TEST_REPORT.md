@@ -6,7 +6,7 @@ This document summarizes automated tests for the Password Vault Application.
 Two levels of testing were performed:
 
 1. Database-level testing (`test_database.py`)
-2. Full CLI integration testing (`test_vault_cli.py`)
+2. CLI menu unit tests (`test_vault_cli.py`)
 
 ---
 
@@ -27,22 +27,18 @@ All database operations behaved correctly, including timestamp updates and hash-
 
 ---
 
-## 2. CLI Integration Tests
+## 2. CLI Menu Tests
 
 Test file: `test_vault_cli.py`  
-Tests call `main()` directly and simulate user input using `unittest.mock.patch`.
+Unit tests exercise `menu_execution()` directly, mocking `click` and database dependencies.
 
-Menu options tested:
+Menu paths covered:
 
-1. Create password ✔  
-2. Retrieve password ✔  
-3. Update password ✔  
-4. Delete password ✔  
-5. Recent passwords ✔  
-6. Exit ✔  
+- Create password success + mismatch handling ✔  
+- Retrieve password (found/missing) ✔  
+- Exit option ✔  
 
-click.prompt, pwinput.pwinput, and click.echo were mocked successfully.  
-All CLI flows completed with expected output.
+Update, delete, and recent-report paths are not yet covered.
 
 ---
 
@@ -59,4 +55,3 @@ The application behaves correctly at both database and CLI levels.
 `python -m unittest test_vault_cli.py`
 
 `python -m unittest discover `
-
