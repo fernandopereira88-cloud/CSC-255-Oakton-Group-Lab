@@ -56,3 +56,45 @@ python main.py
 # OR
 python3 main.py
 ```
+
+## 4. Running Tests
+
+This project includes **two automated test suites**:
+
+### **4.1 Database Tests (low-level logic)**
+
+Verifies vault file operations such as create, retrieve, update, delete, and recent-list logic.
+
+Run:
+
+```sh
+python test_database.py
+```
+
+---
+
+### **4.2 CLI Tests (full program simulation)**
+
+Simulates real user input by calling `main()` and mocking:
+
+* `click.prompt`
+* `pwinput.pwinput`
+* `click.echo`
+* `builtins.input`
+
+Run:
+
+```sh
+python -m unittest test_vault_cli.py
+```
+
+---
+
+### **4.3 Run all tests**
+
+```sh
+python -m unittest discover .
+```
+
+All tests use temporary vault files and **do NOT modify `vault.txt`**.
+
