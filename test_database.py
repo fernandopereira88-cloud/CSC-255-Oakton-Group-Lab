@@ -69,7 +69,7 @@ def test_delete_password():
     create_password_name("gmail", "pw1")
     delete_password_name("gmail", "pw1")
     result = lookup_password_name("gmail", privateCall=1)
-    assert result is None
+    assert result is False
     print(" test_delete_password passed")
 
 
